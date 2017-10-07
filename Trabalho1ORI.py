@@ -24,13 +24,21 @@ while x!=0:
         arquivo.close()
         pass
     elif x==2:
-        nomeArquivo = raw_input('Digite o nome do arquivo que voce deseja acessar: ')
-        arquivo = open(nomeArquivo+'.txt','w')
+        #acessando o arquivo
+        nomeArquivo = raw_input('Digite o nome do arquivo: ')
+        arquivo = open(nomeArquivo+'.txt','r')
+        #lendo o arquivo
+        conteudo = arquivo.readlines()
+        #escrevendo no arquivo
         nome = raw_input('Digite seu nome: ')
-        arquivo.write(nome+'||')
         ra = raw_input('Digite seu ra: ')
-        arquivo.write(ra+'||')
+        conteudo.append(nome+'||'+ra+'||')
         arquivo.close()
+        arquivo = open(nomeArquivo+'.txt','w')
+        arquivo.writelines(conteudo)
+        #fechando
+        arquivo.close()
+        pass
 
     elif x==3:
         pass
