@@ -10,6 +10,17 @@ def abertura():
     print('[0] Sair')
     pass
 
+def check(nomeArquivo,busca):
+	arquivo = file(nomeArquivo+'.txt')
+	for line in arquivo:
+		if busca in line:
+			found = True
+			break
+		else:
+			found = False
+	return found
+
+
 print('Bem-vindo ao trabalho 1!!\n\n')
 import sys
 import os.path
@@ -23,24 +34,28 @@ while x!=0:
         arquivo = open(nomeArquivo+'.txt','w')
         arquivo.close()
         pass
+
     elif x==2:
         #acessando o arquivo
-        nomeArquivo = raw_input('Digite o nome do arquivo: ')
-        arquivo = open(nomeArquivo+'.txt','r')
-        #lendo o arquivo
-        conteudo = arquivo.readlines()
-        #escrevendo no arquivo
+        nomeArquivo = raw_input('Digite o nome do arquivo: ') #lendo o nome do arquivo
+        arquivo = open(nomeArquivo+'.txt','r') #abrindo para leitura
+        conteudo = arquivo.readlines() #lendo os dados do arquivo
         nome = raw_input('Digite seu nome: ')
         ra = raw_input('Digite seu ra: ')
-        conteudo.append(nome+'||'+ra+'||')
+        conteudo.append(nome+'||'+ra+'||') #concatenando
         arquivo.close()
-        arquivo = open(nomeArquivo+'.txt','w')
-        arquivo.writelines(conteudo)
+        arquivo = open(nomeArquivo+'.txt','w') #abrindo para escrita
+        arquivo.writelines(conteudo) #adicionando conteudo
         #fechando
         arquivo.close()
         pass
 
     elif x==3:
+        #bucando um registro
+        nomeArquivo = raw_input('Digite o nome do arquivo: ')
+        busca = raw_input('Digite o que deseja buscar: ')
+        encontrou = check(nomeArquivo,busca)
+        print(encontrou)
         pass
     elif x==4:
         pass
