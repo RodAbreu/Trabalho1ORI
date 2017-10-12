@@ -1,3 +1,6 @@
+import os
+import sys
+import fileinput
 
 def abertura():
     print('Define sua escolha:\n')
@@ -43,30 +46,42 @@ def procuraRegistro():
     busca = raw_input('Digite o que deseja buscar: ')
     arquivo = file(nomeArquivo+'.txt')
     for line in arquivo:
-		if busca in line:
+		if dado in line:
 			found = True
 			break
 		else:
 			found = False
     return found
+    arquivo.close()
 
 #opcao4
+def removeRegistro():
+    nomeArquivo = raw_input('Digite o nome do arquivo: ')
+    dado = raw_input('Digite o que deseja buscar: ')
+    novo_dado = raw_input('Digite o que deseja inserir no lugar: ')
+    #Lendo do arquivo
+    with open(nomeArquivo+'.txt', 'r') as file :
+      filedata = file.read()
+    #Atribuindo novo valor
+    filedata = filedata.replace(dado,novo_dado)
+    #Escrevendo no arquivo
+    with open(nomeArquivo+'.txt', 'w') as file:
+      file.write(filedata)
+
 
 #opcao5
 def mostraRegistros():
     nome = raw_input('Digite o nome do arquivo que voce deseja acessar: ')
-    print open(nome+'.txt').read()
+    print open(nome +'.txt').read()
     pass
 
 #opcao6
 
 
 
-
+#inicio do programa
 
 print('Bem-vindo ao trabalho 1!!\n\n')
-import sys
-import os.path
 x=1
 while x!=0:
     abertura()
@@ -87,6 +102,8 @@ while x!=0:
         pass
 
     elif x==4:
+        #remocao de um registro
+        removeRegistro()
         pass
 
     elif x==5:
@@ -95,7 +112,7 @@ while x!=0:
 
     elif x==6:
         pass
-    
+
     else:
         x = 0
         pass
