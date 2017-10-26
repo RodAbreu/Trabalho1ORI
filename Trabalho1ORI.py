@@ -1,6 +1,7 @@
 import os
 import sys
 import fileinput
+import Aluno
 
 def abertura():
     print('Define sua escolha:\n')
@@ -18,6 +19,8 @@ def criaArquivo():
     nomeArquivo = raw_input('Digite o nome do arquivo que voce deseja criar: ')
     arquivo = open(nomeArquivo+'.txt','w')
     arquivo.close()
+    os.system('clear')
+    print('Arquivo criado com sucesso!')
     pass
 
 #opcao2
@@ -26,10 +29,10 @@ def addRegistro():
     nomeArquivo = raw_input('Digite o nome do arquivo: ') #lendo o nome do arquivo
     arquivo = open(nomeArquivo+'.txt','r') #abrindo para leitura
     conteudo = arquivo.readlines() #lendo os dados do arquivo
-    nome = raw_input('Digite seu nome: ')
-    ra = raw_input('Digite seu ra: ')
-    idade = raw_input('Digite sua idade: ')
-    conteudo.append(nome+'||'+ra+'||'+idade+'||') #concatenando
+    nome = raw_input('\nDigite seu nome: ')
+    ra = raw_input('\nDigite seu ra: ')
+    idade = raw_input('\nDigite sua idade: ')
+    conteudo.append(nome+'||'+ra+'||'+idade+'\n') #concatenando
     arquivo.close()
     arquivo = open(nomeArquivo+'.txt','w') #abrindo para escrita
     if len(conteudo)<=99:
@@ -38,6 +41,8 @@ def addRegistro():
         print('Conteudo muito grande.')
     #fechando
     arquivo.close()
+    os.system('clear')
+    print('Registro adicionado com sucesso!')
     pass
 
 #opcao3
@@ -53,39 +58,56 @@ def procuraRegistro():
 			found = False
     return found
     arquivo.close()
+    os.system('clear')
+    pass
 
 #opcao4
 def removeRegistro():
     nomeArquivo = raw_input('Digite o nome do arquivo: ')
-    dado = raw_input('Digite o que deseja buscar: ')
-    novo_dado = raw_input('Digite o que deseja inserir no lugar: ')
-    #Lendo do arquivo
-    with open(nomeArquivo+'.txt', 'r') as file :
-      filedata = file.read()
-    #Atribuindo novo valor
-    filedata = filedata.replace(dado,novo_dado)
-    #Escrevendo no arquivo
-    with open(nomeArquivo+'.txt', 'w') as file:
-      file.write(filedata)
+    dado = raw_input('Digite o nome que deseja buscar: ')
+    deci = raw_input('Deseja inserir outro nome, digite sim ou nao: ')
+    if deci=='sim':
+        novo_dado = raw_input('Digite o que deseja inserir no lugar: ')
+        #Lendo do arquivo
+        with open(nomeArquivo+'.txt', 'r') as file :
+          filedata = file.read()
+        #Atribuindo novo valor
+        filedata = filedata.replace(dado,novo_dado)
+        #Escrevendo no arquivo
+        with open(nomeArquivo+'.txt', 'w') as file:
+          file.write(filedata)
+    elif deci=='nao':
+        novo_dado = '*************'
+        #Lendo do arquivo
+        with open(nomeArquivo+'.txt', 'r') as file :
+          filedata = file.read()
+        #Atribuindo novo valor
+        filedata = filedata.replace(dado,novo_dado)
+        #Escrevendo no arquivo
+        with open(nomeArquivo+'.txt', 'w') as file:
+          file.write(filedata)
+    else:
+        print('Voce digitou errado')
+
+    os.system('clear')
+    pass
 
 
 #opcao5
 def mostraRegistros():
-    nome = raw_input('Digite o nome do arquivo que voce deseja acessar: ')
+    nome = raw_input('\nDigite o nome do arquivo que voce deseja acessar: ')
+    os.system('clear')
     print open(nome +'.txt').read()
     pass
 
 #opcao6
 
-
-
 #inicio do programa
-
 print('Bem-vindo ao trabalho 1!!\n\n')
 x=1
 while x!=0:
     abertura()
-    x = input('Digite sua escolha: ')
+    x = input('\nDigite sua escolha: ')
 
     if x==1:
         criaArquivo()
@@ -107,6 +129,7 @@ while x!=0:
         pass
 
     elif x==5:
+        #exibicao de todos os registros
         mostraRegistros()
         pass
 
