@@ -9,6 +9,7 @@ void apresentacao();
 void criaArquvo();
 void insereRegistro();
 int quantBytes();
+void copia(char *origem,char unsigned *destino, int tamanho);
 
 typedef struct aluno{
     char nome[38];
@@ -76,6 +77,7 @@ void insereRegistro(){
     int quantBlocos = 0;
     int quantReg = 0;
     int i,j,k,c = 0;
+    bool adicionado = false;
     
     FILE* arq = fopen(nomeArquivo.c_str(), "r+t");
 
@@ -87,79 +89,71 @@ void insereRegistro(){
     printf("Digite a idade do aluno:");
     fgets( aluno1.idade, 4, stdin );
     
-    quantReg =  (quantBytes() - 1 ) / 48;
-    quantBlocos = (quantReg / 10) + 1;
-    printf("%d",quantBytes());
+    //verifica quantidade de registros que tem no arquivo
+    quantReg =quantBytes() / 46;
+    
+    //verifica a quantidade de blocos necessários para a quantidade de registros que tem no arquivo
+    quantBlocos = (quantReg + 1 / 11) + 1;
+    
+    printf("Quantidade de registros: %d",quantBytes() );
     conjBlocos = (unsigned char*) malloc( quantBlocos * 512);
-    bloco  = conjBlocos;
-    if(quantBytes() > 0){
-        for(k = 0; k < quantBlocos; k++){
-            for(j = 0; j < 10; j++){
-                for(i  = 0; i < 48; i ++){
-                    fscanf(arq, "%c",bloco);
-                    if(*bloco == ' ' && i == 0){
-                        for(c =0; c< 6;c++){
-                            *bloco = aluno1.ra[c];
-                            bloco++;
-                        }
-                        for(c =0; c< 37;c++){
-                            *bloco = aluno1.nome[c];
-                            bloco++;
-                        }
-                        for(c =0; c< 3;c++){
-                            *bloco = aluno1.idade[c];
-                            bloco++;
-                        }
-                        i = 48;
-                    }
+    bloco = conjBlocos;
+    if(quantReg > 0){
+        k = 0;
+        j = 0;
+        for(j = 0; j < quantReg; j++){
+            if(j % 11 == 0){
+                bloco = conjBlocos + 512 * k;
+                k++;
+            }
+            for(i  = 0; i < 46; i ++){
+                fscanf(arq, "%c",bloco);
+                if(*bloco == ' ' && i == 0 && !adicionado){
+                    fseek ( arq , 45 , SEEK_CUR );
+                    copia(aluno1.ra,bloco,6);
+                    bloco = bloco + 6;
+                    copia(aluno1.nome,bloco,37);
+                    bloco = bloco + 37;
+                    copia(aluno1.idade,bloco,3);
+                    bloco = bloco + 3;
+                    i = 46;
+                    adicionado = true;
+                }else{
                     bloco++;
                 }
             }
-            bloco = conjBlocos + 512 * (k+1);
+            
         }
-    }else{
+    }
+    
+    if(!adicionado){
         bool enter = false;
-        printf("Foi");
-        for(c =0; c< 6;c++){
-            if(aluno1.ra[c] != '\n')
-                *bloco = aluno1.ra[c];
-            else
-                *bloco = ' ';
-            printf("%c",*bloco);
+        printf("Adicionado no fim");
+        copia(aluno1.ra,bloco,6);
+        bloco = bloco + 6;
+        copia(aluno1.nome,bloco,37);
+        bloco = bloco + 37;
+        copia(aluno1.idade,bloco,3);
+        bloco = bloco + 3;
+        bloco = bloco - 46;
+        
+    }
+    quantReg++;
+    fseek ( arq , 0 , SEEK_SET );
+    k = 0;
+    j = 0;
+    for(j = 0; j < quantReg; j++){
+        if(j % 11 == 0){
+            bloco = conjBlocos + 512 * k;
+            k++;
+        }
+        for(i  = 0; i < 46; i ++){
+            fprintf(arq,"%c",*bloco);
             bloco++;
         }
         
-        for(c =0; c< 37;c++){
-            if(aluno1.nome[c] == '\n' || enter){
-                *bloco = ' ';
-                enter = true;
-            }else
-                *bloco = aluno1.nome[c];
-            
-            printf("%c",*bloco);
-            bloco++;
-        }
-        for(c =0; c< 3;c++){
-            if(aluno1.idade[c] != '\n')
-                *bloco = aluno1.idade[c];
-            else
-                *bloco = ' ';
-            printf("%c",*bloco);
-            bloco++;
-        }
-        bloco = bloco - 46;
     }
-    printf("\n\nBlocos:%d\n\n",quantBlocos);
-    fseek ( arq , 0 , SEEK_SET );
-    for(k = 0; k < quantBlocos; k++){
-        for(j = 0; j < 10; j++){
-            for(i  = 0; i < 48; i ++){
-                fprintf(arq,"%c",*bloco);
-                bloco++;
-            }
-        }
-        bloco = conjBlocos + 512 * (k+1);
-    }
+    free(conjBlocos);
     fclose(arq);
 }
 
@@ -186,6 +180,22 @@ int quantBytes(){
     }
     fclose(arquivo);
     return tamanho;
-
-
+}
+void copia(char *ori,char unsigned *dest, int tamanho){
+    int i=0;
+    char  *origem;
+    char unsigned *destino;
+    bool terminou = false;
+    origem = ori;
+    destino = dest;
+    for(i =0; i< tamanho;i++){
+             if(*origem == '\n' || *origem == '\0' || terminou){
+                *destino = ' ';
+                terminou = true;
+             }else{
+                *destino = *origem;
+             }
+             origem++;
+             destino++;
+    }
 }
