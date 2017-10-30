@@ -80,9 +80,10 @@ void insereRegistro(){
     unsigned char *ponteiroBloco;
     int quantBlocos = 0;
     int quantReg = 0;
+    int sobraReg = 0;
     int i,j,k,c = 0;
     bool adicionado = false;
-    
+    int x=0,contRegistros=0;
     FILE* arq = fopen(nomeArquivo.c_str(), "r+t");
 
     printf("Digite o RA do aluno:");
@@ -94,43 +95,63 @@ void insereRegistro(){
     fgets( aluno1.idade, 4, stdin );
     
     //verifica quantidade de registros que tem no arquivo
-    quantReg =quantBytes() / 46;
-    
-    
+    quantReg =quantBytes() / 46 ;
+    quantBlocos = quantReg / 11 + 1;
+    sobraReg = quantReg % 11;
     bloco = (unsigned char*) malloc(512);
     memset(bloco,0,512);
     ponteiroBloco = bloco;
-    if(quantReg > 0){
-        
-        
-        for(j = 0; j < quantReg && !adicionado; j++){
-            int x = quantReg - j;
+    if((quantReg - sobraReg) > 0){
+        for(j=0;j<(quantReg - sobraReg); j++){
             if(j % 11 == 0){
-                ponteiroBloco= ponteiroBloco - 512;
-                if(quantReg - j > 11)
-                    fscanf(arq, "%506s",ponteiroBloco);
-                else{
-                    string tamanho = "%"+ std::to_string(x) + "s";
-                    fscanf(arq, tamanho.c_str() ,ponteiroBloco);
-                }
-            }
-            for(i  = 0; i < x; i ++){
-                copiaParaChar(ponteiroBloco,alunoAtual.ra,6);
-                if(alunoAtual.ra[0] == ' ' && !adicionado){
-                    copiaParaUnsigned(aluno1.ra,ponteiroBloco,6);
-                    ponteiroBloco = ponteiroBloco + 6;
-                    copiaParaUnsigned(aluno1.nome,ponteiroBloco,37);
-                    ponteiroBloco = ponteiroBloco + 37;
-                    copiaParaUnsigned(aluno1.idade,ponteiroBloco,3);
-                    ponteiroBloco = ponteiroBloco + 3;
-                }
-                    ponteiroBloco = ponteiroBloco + 46;
-                }
+                ponteiroBloco = bloco;
+                fscanf(arq, "%500s",ponteiroBloco);
             }
             
         }
-    
-    
+    }
+    if(sobraReg > 0)
+            ponteiroBloco = bloco;
+            string tamanho = "%"+ std::to_string(sobraReg * 46) + "s";
+            fscanf(arq, tamanho.c_str() ,ponteiroBloco);
+        
+        
+        
+        
+        
+        
+        
+//         for(j = 0; j < quantBlocos && !adicionado; j++){
+//             x = (quantReg - 11 * j) % 11 ;
+//             if(x == 0)
+//                 contRegistros = 11;
+//             else
+//                 contRegistros = quantReg % 11;
+//             if(j % 11 == 0 || (j == 0 && quantReg < 11)){
+//                 ponteiroBloco = bloco;
+//                 if(x == 0)
+//                     fscanf(arq, "%506s",ponteiroBloco);
+//                 else{
+//                     string tamanho = "%"+ std::to_string(x  * 46) + "s";
+//                     fscanf(arq, tamanho.c_str() ,ponteiroBloco);
+//                 }
+//             }
+//             for(i  = 0; i < contRegistros ; i ++){
+//                 copiaParaChar(ponteiroBloco,alunoAtual.ra,6);
+//                 if(alunoAtual.ra[0] == ' ' && !adicionado){
+//                     copiaParaUnsigned(aluno1.ra,ponteiroBloco,6);
+//                     ponteiroBloco = ponteiroBloco + 6;
+//                     copiaParaUnsigned(aluno1.nome,ponteiroBloco,37);
+//                     ponteiroBloco = ponteiroBloco + 37;
+//                     copiaParaUnsigned(aluno1.idade,ponteiroBloco,3);
+//                     ponteiroBloco = ponteiroBloco + 3;
+//                     adicionado = true;
+//                 }else{
+//                     ponteiroBloco = ponteiroBloco + 46;
+//                 }
+//             }
+//         }
+    }
     if(!adicionado){
         copiaParaUnsigned(aluno1.ra,ponteiroBloco,6);
         ponteiroBloco = ponteiroBloco + 6;
@@ -139,14 +160,14 @@ void insereRegistro(){
         copiaParaUnsigned(aluno1.idade,ponteiroBloco,3);
         ponteiroBloco = ponteiroBloco + 3;
     }
-    ponteiroBloco = bloco;
-    if(adicionado)
-        fprintf(arq,"%506s",bloco);
-    else{
-        int sobraRegistros = (quantReg + 1) % 11;
-        string tamanho = "%"+ std::to_string(sobraRegistros) + "s";
-        fprintf(arq, tamanho.c_str() ,bloco);
-    }
+//     ponteiroBloco = bloco;
+//     if(adicionado)
+//         fprintf(arq,"%506s",ponteiroBloco);
+//     else{
+//         int sobraRegistros = (quantReg) % 11;
+//         string tamanho = "%"+ std::to_string(sobraRegistros * 46) + "s";
+//         fprintf(arq, tamanho.c_str() ,ponteiroBloco);
+//     }
     free(bloco);
     fclose(arq);
 }
