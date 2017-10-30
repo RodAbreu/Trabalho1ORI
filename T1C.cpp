@@ -1,6 +1,7 @@
 #include <iostream>
-#include <string>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 using namespace std;
 
 string nomeArquivo;
@@ -8,9 +9,11 @@ string nomeArquivo;
 void apresentacao();
 void criaArquvo();
 void insereRegistro();
+void buscaRegistro();
 int quantBytes();
-void copia(char *origem,char unsigned *destino, int tamanho);
-
+void copiaParaUnsigned(char *ori,char unsigned *dest, int tamanho);
+void copiaParaChar(char unsigned *ori,char *dest, int tamanho);
+bool comparaCadeiaChar(char *p,char *d,int tamanho);
 typedef struct aluno{
     char nome[38];
     char idade[4];
@@ -38,7 +41,7 @@ int main(int argc, char const *argv[]) {
                 insereRegistro();
                 break;
             case 3:
-                //buscaRegistro();
+                buscaRegistro();
                 break;
             case 4:
                 //removeRegistro();
@@ -71,9 +74,10 @@ void apresentacao(){
 }
 void insereRegistro(){
     Aluno aluno1;
+    Aluno alunoAtual;
     int ra=0,idade=0;
     unsigned char *bloco;
-    unsigned char *conjBlocos;
+    unsigned char *ponteiroBloco;
     int quantBlocos = 0;
     int quantReg = 0;
     int i,j,k,c = 0;
@@ -92,54 +96,81 @@ void insereRegistro(){
     //verifica quantidade de registros que tem no arquivo
     quantReg =quantBytes() / 46;
     
-    //verifica a quantidade de blocos necessários para a quantidade de registros que tem no arquivo
-    quantBlocos = (quantReg + 1 / 11) + 1;
     
-    printf("Quantidade de registros: %d",quantBytes() );
-    conjBlocos = (unsigned char*) malloc( quantBlocos * 512);
-    bloco = conjBlocos;
+    bloco = (unsigned char*) malloc(512);
+    memset(bloco,0,512);
+    ponteiroBloco = bloco;
     if(quantReg > 0){
-        k = 0;
-        j = 0;
-        for(j = 0; j < quantReg; j++){
+        
+        
+        for(j = 0; j < quantReg && !adicionado; j++){
+            int x = quantReg - j;
             if(j % 11 == 0){
-                bloco = conjBlocos + 512 * k;
-                k++;
+                ponteiroBloco= ponteiroBloco - 512;
+                if(quantReg - j > 11)
+                    fscanf(arq, "%506s",ponteiroBloco);
+                else{
+                    string tamanho = "%"+ std::to_string(x) + "s";
+                    fscanf(arq, tamanho.c_str() ,ponteiroBloco);
+                }
             }
-            for(i  = 0; i < 46; i ++){
-                fscanf(arq, "%c",bloco);
-                if(*bloco == ' ' && i == 0 && !adicionado){
-                    fseek ( arq , 45 , SEEK_CUR );
-                    copia(aluno1.ra,bloco,6);
-                    bloco = bloco + 6;
-                    copia(aluno1.nome,bloco,37);
-                    bloco = bloco + 37;
-                    copia(aluno1.idade,bloco,3);
-                    bloco = bloco + 3;
-                    i = 46;
-                    adicionado = true;
-                }else{
-                    bloco++;
+            for(i  = 0; i < x; i ++){
+                copiaParaChar(ponteiroBloco,alunoAtual.ra,6);
+                if(alunoAtual.ra[0] == ' ' && !adicionado){
+                    copiaParaUnsigned(aluno1.ra,ponteiroBloco,6);
+                    ponteiroBloco = ponteiroBloco + 6;
+                    copiaParaUnsigned(aluno1.nome,ponteiroBloco,37);
+                    ponteiroBloco = ponteiroBloco + 37;
+                    copiaParaUnsigned(aluno1.idade,ponteiroBloco,3);
+                    ponteiroBloco = ponteiroBloco + 3;
+                }
+                    ponteiroBloco = ponteiroBloco + 46;
                 }
             }
             
         }
-    }
+    
     
     if(!adicionado){
-        bool enter = false;
-        printf("Adicionado no fim");
-        copia(aluno1.ra,bloco,6);
-        bloco = bloco + 6;
-        copia(aluno1.nome,bloco,37);
-        bloco = bloco + 37;
-        copia(aluno1.idade,bloco,3);
-        bloco = bloco + 3;
-        bloco = bloco - 46;
-        
+        copiaParaUnsigned(aluno1.ra,ponteiroBloco,6);
+        ponteiroBloco = ponteiroBloco + 6;
+        copiaParaUnsigned(aluno1.nome,ponteiroBloco,37);
+        ponteiroBloco = ponteiroBloco + 37;
+        copiaParaUnsigned(aluno1.idade,ponteiroBloco,3);
+        ponteiroBloco = ponteiroBloco + 3;
     }
-    quantReg++;
-    fseek ( arq , 0 , SEEK_SET );
+    ponteiroBloco = bloco;
+    if(adicionado)
+        fprintf(arq,"%506s",bloco);
+    else{
+        int sobraRegistros = (quantReg + 1) % 11;
+        string tamanho = "%"+ std::to_string(sobraRegistros) + "s";
+        fprintf(arq, tamanho.c_str() ,bloco);
+    }
+    free(bloco);
+    fclose(arq);
+}
+void buscaRegistro(){
+    
+    Aluno aluno1;
+    unsigned char *bloco;
+    unsigned char *conjBlocos;
+    int quantBlocos = 0;
+    int quantReg = 0;
+    int i,j,k,c = 0;
+    bool achou = false;
+    char ra[7];
+    FILE* arq = fopen(nomeArquivo.c_str(), "r+t");
+    printf("Digite o ra do aluno:");
+    fgets(ra, 7, stdin );
+    //verifica quantidade de registros que tem no arquivo
+    quantReg =quantBytes() / 46;
+    
+    //verifica a quantidade de blocos necessários para a quantidade de registros que tem no arquivo
+    quantBlocos = (quantReg / 11) + 1;
+    
+    conjBlocos = (unsigned char*) malloc( quantBlocos * 512);
+    bloco = conjBlocos;
     k = 0;
     j = 0;
     for(j = 0; j < quantReg; j++){
@@ -148,15 +179,38 @@ void insereRegistro(){
             k++;
         }
         for(i  = 0; i < 46; i ++){
-            fprintf(arq,"%c",*bloco);
+            fscanf(arq, "%c",bloco);
             bloco++;
         }
-        
+            
     }
-    free(conjBlocos);
-    fclose(arq);
+    bloco = conjBlocos;
+    for(j = 0; j < quantReg && !achou; j++){
+        if(j % 11 == 0){
+            bloco = conjBlocos + 512 * k;
+            k++;
+        }
+        copiaParaChar(bloco,aluno1.ra,6);
+        printf("\nRA:%c",aluno1.ra);
+        bloco = bloco + 6;
+        if(comparaCadeiaChar(aluno1.ra,ra,6)){
+            copiaParaChar(bloco,aluno1.nome,37);
+           
+            bloco = bloco + 37;
+            copiaParaChar(bloco,aluno1.ra,3);
+            bloco = bloco + 3;    
+            achou = true;
+        }
+    }
+    if(achou){
+        printf("---- Aluno encontrado ----\nRA do aluno:%s",aluno1.ra);
+        printf("Nome do aluno:%s",aluno1.nome);
+        printf("Idade do aluno:%s",aluno1.idade);
+    }else{
+        printf("---- Aluno nao encontrado ----");
+    }
+    
 }
-
 void criaArquvo(){
     
     cout << "Digite o nome do arquivo que deseja criar: ";
@@ -181,7 +235,7 @@ int quantBytes(){
     fclose(arquivo);
     return tamanho;
 }
-void copia(char *ori,char unsigned *dest, int tamanho){
+void copiaParaUnsigned(char *ori,char unsigned *dest, int tamanho){
     int i=0;
     char  *origem;
     char unsigned *destino;
@@ -198,4 +252,31 @@ void copia(char *ori,char unsigned *dest, int tamanho){
              origem++;
              destino++;
     }
+}
+void copiaParaChar(char unsigned *ori,char *dest, int tamanho){
+    int i=0;
+    char  *destino;
+    char unsigned *origem;
+    bool terminou = false;
+    origem = ori;
+    destino = dest;
+    for(i =0; i< tamanho;i++){
+            *destino = *origem;
+            origem++;
+            destino++;
+    }
+}
+bool comparaCadeiaChar(char *p,char *d,int tamanho){
+    char *primeiro, *segundo;
+    primeiro = p;
+    segundo = d;
+    int cont=0,i;
+    for(i=0; i <tamanho;i++){
+        if(primeiro[i] == segundo[i])
+            cont++;
+         printf("\np:%c s:%c\n",primeiro[i],segundo[i]);
+    }
+    if(cont == tamanho)
+        return true;
+    return false;
 }
