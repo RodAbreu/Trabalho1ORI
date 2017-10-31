@@ -10,6 +10,7 @@ void apresentacao();
 void criaArquvo();
 void insereRegistro();
 void buscaRegistro();
+void exibirString(char*,int);
 int quantBytes();
 void copiaParaUnsigned(char *ori,char unsigned *dest, int tamanho);
 void copiaParaChar(char unsigned *ori,char *dest, int tamanho);
@@ -177,64 +178,74 @@ void insereRegistro(){
 
     
 void buscaRegistro(){
-    
-    Aluno aluno1;
+    Aluno alunoAtual;
     unsigned char *bloco;
-    unsigned char *conjBlocos;
-    int quantBlocos = 0;
+    unsigned char *ponteiroBloco;
     int quantReg = 0;
-    int i,j,k,c = 0;
-    bool achou = false;
     char ra[7];
-    FILE* arq = fopen(nomeArquivo.c_str(), "r+t");
-    printf("Digite o ra do aluno:");
+    int sobraReg = 0;
+    int j = 0;
+    bool achou = false;
+    FILE* arq = fopen(nomeArquivo.c_str(), "r+");
+    
+    
+    printf("Digite o RA do aluno:");
     fgets(ra, 7, stdin );
+
+    flush_in(); 
     //verifica quantidade de registros que tem no arquivo
-    quantReg =quantBytes() / 46;
+    quantReg =quantBytes() / 46 ;
     
-    //verifica a quantidade de blocos necessários para a quantidade de registros que tem no arquivo
-    quantBlocos = (quantReg / 11) + 1;
+    fseek(arq, 0, SEEK_SET);
+    printf("%d",quantBytes() );
+    sobraReg = quantReg % 11;
+    bloco = (unsigned char*) malloc(512);
+    memset(bloco,0,512);
+    ponteiroBloco = bloco;
     
-    conjBlocos = (unsigned char*) malloc( quantBlocos * 512);
-    bloco = conjBlocos;
-    k = 0;
-    j = 0;
-    for(j = 0; j < quantReg; j++){
-        if(j % 11 == 0){
-            bloco = conjBlocos + 512 * k;
-            k++;
-        }
-        for(i  = 0; i < 46; i ++){
-            fscanf(arq, "%c",bloco);
-            bloco++;
-        }
+    if(quantReg > 0){
+        for(j=0;j<quantReg && !achou ; j++){
+            if(j == (quantReg - sobraReg) && sobraReg != 0){
+                    ponteiroBloco = bloco;
+                    printf("Foi ate q certo");
+                    string tamanho = "%"+ std::to_string(sobraReg * 46) + "c";
+                    fscanf(arq, tamanho.c_str() ,ponteiroBloco);
+            }else{
+                if(j % 11 == 0){
+                    ponteiroBloco = bloco;
+                    fscanf(arq, "%506c",ponteiroBloco);
+                }
+            }
+            copiaParaChar(ponteiroBloco,alunoAtual.ra,6);
+            printf("%s",alunoAtual.ra);
+            if(comparaCadeiaChar(alunoAtual.ra,ra,6)){
+                ponteiroBloco = ponteiroBloco + 6;
+                copiaParaChar(ponteiroBloco,alunoAtual.nome,37);
+                ponteiroBloco = ponteiroBloco + 37;
+                copiaParaChar(ponteiroBloco,alunoAtual.idade,3);
+                ponteiroBloco = ponteiroBloco + 3;
+                achou = true;
+            }else{
+                ponteiroBloco = ponteiroBloco + 46;
+            }
             
-    }
-    bloco = conjBlocos;
-    for(j = 0; j < quantReg && !achou; j++){
-        if(j % 11 == 0){
-            bloco = conjBlocos + 512 * k;
-            k++;
         }
-        copiaParaChar(bloco,aluno1.ra,6);
-        printf("\nRA:%c",aluno1.ra);
-        bloco = bloco + 6;
-        if(comparaCadeiaChar(aluno1.ra,ra,6)){
-            copiaParaChar(bloco,aluno1.nome,37);
-           
-            bloco = bloco + 37;
-            copiaParaChar(bloco,aluno1.ra,3);
-            bloco = bloco + 3;    
-            achou = true;
+        if(achou){
+            printf("---- Aluno encontrado ----\nRA do aluno:");
+            exibirString(alunoAtual.ra,6);
+            printf("\nNome do aluno:");
+            exibirString(alunoAtual.nome,37);
+            printf("\nIdade do aluno:");
+            exibirString(alunoAtual.idade,3);
+        }else{
+            printf("---- Aluno nao encontrado ----");
         }
-    }
-    if(achou){
-        printf("---- Aluno encontrado ----\nRA do aluno:%s",aluno1.ra);
-        printf("Nome do aluno:%s",aluno1.nome);
-        printf("Idade do aluno:%s",aluno1.idade);
     }else{
-        printf("---- Aluno nao encontrado ----");
+        printf("O arquivo nao contem nenhum registro");
     }
+        
+    free(bloco);
+    fclose(arq);
     
 }
 void criaArquvo(){
@@ -283,14 +294,15 @@ void copiaParaChar(char unsigned *ori,char *dest, int tamanho){
     int i=0;
     char  *destino;
     char unsigned *origem;
-    bool terminou = false;
     origem = ori;
     destino = dest;
-    for(i =0; i< tamanho;i++){
-            *destino = *origem;
-            origem++;
-            destino++;
-    }
+    for(i =0; i< tamanho;i++)
+            if(origem[i] != '\0'){
+                destino[i] = origem[i];
+            }else
+                i = tamanho;
+            
+            
 }
 bool comparaCadeiaChar(char *p,char *d,int tamanho){
     char *primeiro, *segundo;
@@ -300,9 +312,14 @@ bool comparaCadeiaChar(char *p,char *d,int tamanho){
     for(i=0; i <tamanho;i++){
         if(primeiro[i] == segundo[i])
             cont++;
-         printf("\np:%c s:%c\n",primeiro[i],segundo[i]);
     }
     if(cont == tamanho)
         return true;
     return false;
+}
+void exibirString(char* string,int tamanho){
+    int cont = 0;
+    for(cont = 0; cont < tamanho;cont++)
+        printf("%c",string[cont]);
+    
 }
