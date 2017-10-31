@@ -75,17 +75,16 @@ void apresentacao(){
 void insereRegistro(){
     Aluno aluno1;
     Aluno alunoAtual;
-    int ra=0,idade=0;
     unsigned char *bloco;
     unsigned char *ponteiroBloco;
-    int quantBlocos = 0;
     int quantReg = 0;
     int sobraReg = 0;
-    int i,j,k,c = 0;
+    int j = 0;
     bool adicionado = false;
-    int x=0,contRegistros=0;
-    FILE* arq = fopen(nomeArquivo.c_str(), "r+t");
-
+    bool adicionadoResto = false;
+    FILE* arq = fopen(nomeArquivo.c_str(), "r+");
+    
+    
     printf("Digite o RA do aluno:");
     fgets( aluno1.ra, 7, stdin );
     flush_in(); 
@@ -96,81 +95,87 @@ void insereRegistro(){
     
     //verifica quantidade de registros que tem no arquivo
     quantReg =quantBytes() / 46 ;
-    quantBlocos = quantReg / 11 + 1;
+    
+    fseek(arq, 0, SEEK_SET);
+    printf("%d",quantBytes() );
     sobraReg = quantReg % 11;
     bloco = (unsigned char*) malloc(512);
-    memset(bloco,0,512);
     ponteiroBloco = bloco;
     if((quantReg - sobraReg) > 0){
-        for(j=0;j<(quantReg - sobraReg); j++){
+        for(j=0;j<(quantReg - sobraReg) && !adicionado ; j++){
             if(j % 11 == 0){
                 ponteiroBloco = bloco;
-                fscanf(arq, "%500s",ponteiroBloco);
+                fscanf(arq, "%506c",ponteiroBloco);
+                
+            }
+            copiaParaChar(ponteiroBloco,alunoAtual.ra,6);
+            if(alunoAtual.ra[0] == ' ' && !adicionado){
+                copiaParaUnsigned(aluno1.ra,ponteiroBloco,6);
+                ponteiroBloco = ponteiroBloco + 6;
+                copiaParaUnsigned(aluno1.nome,ponteiroBloco,37);
+                ponteiroBloco = ponteiroBloco + 37;
+                copiaParaUnsigned(aluno1.idade,ponteiroBloco,3);
+                ponteiroBloco = ponteiroBloco + 3;
+                adicionado = true;
+                fseek(arq, - 506  , SEEK_CUR);
+            }else{
+                ponteiroBloco = ponteiroBloco + 46;
             }
             
         }
-    }
-    if(sobraReg > 0)
+        if(!adicionado){
             ponteiroBloco = bloco;
-            string tamanho = "%"+ std::to_string(sobraReg * 46) + "s";
-            fscanf(arq, tamanho.c_str() ,ponteiroBloco);
-        
-        
-        
-        
-        
-        
-        
-//         for(j = 0; j < quantBlocos && !adicionado; j++){
-//             x = (quantReg - 11 * j) % 11 ;
-//             if(x == 0)
-//                 contRegistros = 11;
-//             else
-//                 contRegistros = quantReg % 11;
-//             if(j % 11 == 0 || (j == 0 && quantReg < 11)){
-//                 ponteiroBloco = bloco;
-//                 if(x == 0)
-//                     fscanf(arq, "%506s",ponteiroBloco);
-//                 else{
-//                     string tamanho = "%"+ std::to_string(x  * 46) + "s";
-//                     fscanf(arq, tamanho.c_str() ,ponteiroBloco);
-//                 }
-//             }
-//             for(i  = 0; i < contRegistros ; i ++){
-//                 copiaParaChar(ponteiroBloco,alunoAtual.ra,6);
-//                 if(alunoAtual.ra[0] == ' ' && !adicionado){
-//                     copiaParaUnsigned(aluno1.ra,ponteiroBloco,6);
-//                     ponteiroBloco = ponteiroBloco + 6;
-//                     copiaParaUnsigned(aluno1.nome,ponteiroBloco,37);
-//                     ponteiroBloco = ponteiroBloco + 37;
-//                     copiaParaUnsigned(aluno1.idade,ponteiroBloco,3);
-//                     ponteiroBloco = ponteiroBloco + 3;
-//                     adicionado = true;
-//                 }else{
-//                     ponteiroBloco = ponteiroBloco + 46;
-//                 }
-//             }
-//         }
+            memset(bloco,0,512);
+        }
     }
-    if(!adicionado){
+    if(sobraReg > 0 && !adicionado){
+            ponteiroBloco = bloco;
+            string tamanho = "%"+ std::to_string(sobraReg * 46) + "c";
+            fscanf(arq, tamanho.c_str() ,ponteiroBloco);
+            for(j=0;j<sobraReg; j++){
+                copiaParaChar(ponteiroBloco,alunoAtual.ra,6);
+                if(alunoAtual.ra[0] == ' ' && !adicionadoResto){
+                    copiaParaUnsigned(aluno1.ra,ponteiroBloco,6);
+                    ponteiroBloco = ponteiroBloco + 6;
+                    copiaParaUnsigned(aluno1.nome,ponteiroBloco,37);
+                    ponteiroBloco = ponteiroBloco + 37;
+                    copiaParaUnsigned(aluno1.idade,ponteiroBloco,3);
+                    ponteiroBloco = ponteiroBloco + 3;
+                    adicionadoResto = true;
+                }else{
+                    ponteiroBloco = ponteiroBloco + 46;
+                }
+            }
+            fseek(arq, - sobraReg * 46  , SEEK_CUR);
+    }
+    if(!adicionado && !adicionadoResto){
         copiaParaUnsigned(aluno1.ra,ponteiroBloco,6);
+        printf("%s",aluno1.ra);
         ponteiroBloco = ponteiroBloco + 6;
         copiaParaUnsigned(aluno1.nome,ponteiroBloco,37);
         ponteiroBloco = ponteiroBloco + 37;
         copiaParaUnsigned(aluno1.idade,ponteiroBloco,3);
-        ponteiroBloco = ponteiroBloco + 3;
+        ponteiroBloco = ponteiroBloco + 3;        
     }
-//     ponteiroBloco = bloco;
-//     if(adicionado)
-//         fprintf(arq,"%506s",ponteiroBloco);
-//     else{
-//         int sobraRegistros = (quantReg) % 11;
-//         string tamanho = "%"+ std::to_string(sobraRegistros * 46) + "s";
-//         fprintf(arq, tamanho.c_str() ,ponteiroBloco);
-//     }
+    ponteiroBloco = bloco;
+    if(adicionado){
+         fprintf(arq,"%506s",ponteiroBloco);
+    }else{
+        if(adicionadoResto){
+            string tamanho = "%"+ std::to_string(sobraReg * 46) + "s";
+            fprintf(arq, tamanho.c_str() ,ponteiroBloco);
+        }else{
+            string tamanho = "%"+ std::to_string((sobraReg + 1) * 46) + "s";
+            printf("%s",tamanho.c_str());
+            fprintf(arq, tamanho.c_str() ,ponteiroBloco);
+        }
+     }
+    
     free(bloco);
     fclose(arq);
-}
+}    
+
+    
 void buscaRegistro(){
     
     Aluno aluno1;
@@ -238,14 +243,14 @@ void criaArquvo(){
     cin >> nomeArquivo;    
     flush_in(); 
     nomeArquivo = nomeArquivo + ".txt";
-    FILE* arq = fopen(nomeArquivo.c_str(), "wt");
+    FILE* arq = fopen(nomeArquivo.c_str(), "w");
     fclose(arq);
 }
 int quantBytes(){
 
     FILE *arquivo; 
     int tamanho =0; 
-    arquivo = fopen(nomeArquivo.c_str(), "rt");
+    arquivo = fopen(nomeArquivo.c_str(), "r");
 
     if (arquivo != NULL) {
         fseek(arquivo, 0, SEEK_END);
