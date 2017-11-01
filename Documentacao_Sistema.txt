@@ -1,0 +1,13 @@
+Documentação do sistema de arquivo
+
+- O código fora compilado no gcc, na versão 7.2.0
+- Para esse sistema será utilizado como registro os dados de um aluno, como ra, nome e idade.
+- O tipo do arquivo será um arquivo texto, portanto todo elemento dele será um cojunto de caracteres.
+- Para a organização do bloco no arquivo, criou-se um cabeçalho com a quantidade de registros e um rótulo de bloco. Para o espaço considerado como lixo fora utilizado o caracter *. Além disso, quando um registro é removido de um bloco, será demarcado com um caracter de espaço.
+- Para a inserção criou-se um bloco, quando necessário e armazenado no arquivo, quando temos um bloco não completado inserimos  o registro neste,
+além disso quando temos um registro marcado logicamente como excluido o novo aluno será inserido neste.
+- Na busca teremos um bloco na memória que irá pegar cada bloco e procurar neste bloco o aluno que está sendo procurado.
+- Na listagem temos um bloco na memória que irá pegar cada bloco, e para este bloco na memória irá ser mostrado cada registro.
+- Na remoção teremos um bloco na memória que irá pegar cada bloco e procurar neste bloco o aluno que está sendo removido logicamente, quando removido logicamente será demarcado com o caracter de espaço.
+- Na alteração teremos um bloco na memória que irá pegar cada bloco e procurar neste bloco o aluno que irá ser alterado.
+- Na compactação (vê se é esse o nome) será alocado um bloco para pegar cada bloco do arquivo original e um outro bloco para inserir um bloco no arquivo compactado, quando encontrado um registro válido ele irá ser gravado no bloco de memoria e posteriormente esse bloco será salvo no novo arquivo compactado.
